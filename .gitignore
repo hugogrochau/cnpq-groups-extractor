@@ -4,6 +4,7 @@ config.json
 # !output/.gitkeep
 
 # Build files
+build
 dist
 
 # Logs

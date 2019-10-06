@@ -2,9 +2,13 @@
   "name": "cnpq-groups-extractor",
   "version": "0.0.1",
   "description": "Tool for extracting information from groups registered in cnpq's database",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src/*",
+    "build": "tsc",
+    "clean": "rimraf build output",
+    "start": "ts-node --files ."
   },
   "repository": {
     "type": "git",
@@ -23,6 +27,22 @@
   },
   "homepage": "https://github.com/hugogrochau/cnpq-groups-extractor#readme",
   "dependencies": {
-    "typescript-starter": "^2.4.8"
+    "@types/sqlite3": "^3.1.5",
+    "chalk": "^2.4.2",
+    "commander": "^3.0.2",
+    "rimraf": "^3.0.0",
+    "sqlite3": "^4.1.0",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.3.2",
+    "@typescript-eslint/parser": "^2.3.2",
+    "eslint": "^6.5.1",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1"
   }
 }
