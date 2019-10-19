@@ -6,7 +6,8 @@ import { version, name } from '../package.json'
 import { extract } from './extract'
 
 commander.version(version)
-  .arguments('[group]')
+  .arguments('group')
+  .usage('group')
   .option('-g --group <group>', 'Group to extract')
   .option('-v --verbose', 'Verbose log')
   .option('-f --force', 'Force overwrite')
@@ -23,6 +24,11 @@ if (commander.force) {
 logger.debug(`Starting ${name} v${version}`)
 
 const group = commander.group || commander.args[0]
+
+if (!group) {
+  commander.outputHelp()
+  process.exit(1)
+}
 
 extract(group)
   .then(() => logger.info('Finished extracting successfully'))
