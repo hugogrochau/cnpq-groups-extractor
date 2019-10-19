@@ -1,7 +1,13 @@
 import { Page } from 'puppeteer'
 
 export const getText = async (page: Page, selector: string, regex?: RegExp) => {
-  const result = await page.$eval(selector, el => el.textContent)
+  // const result = await page.$eval(selector, el => el.textContent)
+  const element = await page.$(selector)
+  if (!element) {
+    throw new Error(`Couldn't find any matches for selector ${selector}`)
+  }
+
+  const result = await (await element.getProperty('textContent')).jsonValue()
 
   if (!result) {
     return ''

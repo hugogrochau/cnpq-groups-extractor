@@ -5,10 +5,10 @@ export interface Group {
   url: string,
   shortId: number,
   longId: number,
-  certified: boolean,
+  situation: string,
   creationYear: number,
-  situationDate: Date,
-  lastUpdateDate: Date,
+  situationDate: Date | null,
+  lastUpdateDate: Date | null,
   leader1: string,
   leader2: string | null,
   areas: string,
@@ -30,7 +30,6 @@ export interface Group {
   contactWebsite: string,
   repercussions: string,
 }
-
 
 export const saveGroup = async (group: Group) => {
   logger.info(`Saving group ${group.title} to database`)

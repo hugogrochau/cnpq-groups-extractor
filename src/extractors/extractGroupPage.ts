@@ -1,6 +1,7 @@
 import { saveGroup } from '../database'
 import { Page } from 'puppeteer'
 import { getText } from '../utils'
+import { parse } from 'date-fns'
 
 export const extractGroupPage = async (page: Page) => {
   const titleSelector = '#tituloImpressao > h1'
@@ -15,7 +16,7 @@ export const extractGroupPage = async (page: Page) => {
     url,
     shortId: await getShortId(url),
     longId: await getLongId(page),
-    certified: await getIsCertified(page),
+    situation: await getSituation(page),
     creationYear: await getCreationYear(page),
     situationDate: await getSituationDate(page),
     lastUpdateDate: await getLastUpdateDate(page),
@@ -42,10 +43,9 @@ export const extractGroupPage = async (page: Page) => {
   })
 }
 
-
 export const getLongId = async (page: Page) => {
- const result = await getText(page, '#idFormVisualizarGrupoPesquisa > div > div:nth-child(2)', /Endereço para acessar este espelho: dgp\.cnpq\.br\/dgp\/espelhogrupo\/(\d+)/i)
- return +result
+  const result = await getText(page, '#idFormVisualizarGrupoPesquisa > div > div:nth-child(2)', /Endereço para acessar este espelho: dgp\.cnpq\.br\/dgp\/espelhogrupo\/(\d+)/i)
+  return +result
 }
 
 export const getShortId = (url: string) => {
@@ -58,11 +58,7 @@ export const getShortId = (url: string) => {
   return +matchResults[1].trim()
 }
 
-export const getIsCertified = async (page: Page) => {
-  const certifiedText = await getText(page, '#identificacao > fieldset > div:nth-child(2) > div')
-
-  return certifiedText === 'Certificado'
-}
+export const getSituation = async (page: Page) => getText(page, '#identificacao > fieldset > div:nth-child(2) > div')
 
 export const getCreationYear = async (page: Page) => {
   const result = await getText(page, '#identificacao > fieldset > div:nth-child(3) > div')
@@ -71,17 +67,37 @@ export const getCreationYear = async (page: Page) => {
 
 export const getSituationDate = async (page: Page) => {
   const result = await getText(page, '#identificacao > fieldset > div:nth-child(4) > div')
-  return new Date(Date.parse(result))
+  const parsedDate = parse(`${result} -03`, 'dd/MM/yyyy HH:mm X', 0)
+
+  if (parsedDate === new Date(0)) {
+    return null
+  }
+
+  return parsedDate
 }
 
 export const getLastUpdateDate = async (page: Page) => {
   const result = await getText(page, '#identificacao > fieldset > div:nth-child(5) > div')
-  return new Date(Date.parse(result))
+  const parsedDate = parse(`${result} -03`, 'dd/MM/yyyy HH:mm X', 0)
+
+  if (parsedDate === new Date(0)) {
+    return null
+  }
+
+  return parsedDate
 }
 
 export const getLeaders = async (page: Page): Promise<[string, string | null]> => {
   const result = await getText(page, '#identificacao > fieldset > div:nth-child(6) > div')
-  const [leader1, leader2] = result.split('\n').filter(l => !!l)
+  const sanatizedResults = result
+    .split('\n')
+    .map((s: string) => s
+      .replace('ui-button', '')
+      .replace(/\s+/g, ' ')
+      .replace(/^\s|\s$/g, '')
+    )
+
+  const [leader1, leader2] = sanatizedResults
 
   return [leader1, leader2 || null]
 }

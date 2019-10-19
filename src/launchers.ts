@@ -25,5 +25,6 @@ export const launchExtractGroupPage = async (group: string) => {
   await extractGroupPage(page)
 
   logger.info(`Finished extracting group ${group}`)
+
   await browser.close()
 }
