@@ -4,7 +4,7 @@ import { getText, timeout } from '../utils'
 import { Page, Browser, ElementHandle } from 'puppeteer'
 import { extractGroupPage } from './extractGroupPage'
 
-const numberOfResultsPerPage = 25
+const numberOfResultsPerPage = 100
 
 export const extractFromGroupSearch = async (page: Page, browser: Browser, searchQuery: string) => {
   await executeSearch(page, searchQuery)
