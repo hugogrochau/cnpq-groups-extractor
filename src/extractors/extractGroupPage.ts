@@ -39,7 +39,7 @@ export const extractGroupPage = async (page: Page) => {
     contactFax: await getContactFax(page),
     contactEmail: await getContactEmail(page),
     contactWebsite: await getContactWebsite(page),
-    repercussions: await getRepercussions(page),
+    repercussions: await getRepercussions(page)
   })
 }
 
@@ -95,6 +95,8 @@ export const getLeaders = async (page: Page): Promise<[string, string | null]> =
       .replace('ui-button', '')
       .replace(/\s+/g, ' ')
       .replace(/^\s|\s$/g, '')
+      .replace(/Permite enviar email.*/, '')
+      .trim()
     )
 
   const [leader1, leader2] = sanatizedResults
@@ -106,7 +108,14 @@ export const getAreas = (page: Page) => getText(page, '#identificacao > fieldset
 
 export const getInstitution = (page: Page) => getText(page, '#identificacao > fieldset > div:nth-child(8) > div')
 
-export const getUnit = (page: Page) => getText(page, '#identificacao > fieldset > div:nth-child(9) > div')
+export const getUnit = async (page: Page) => {
+  try {
+    const result = await getText(page, '#identificacao > fieldset > div:nth-child(9) > div')
+    return result
+  } catch (err) {
+    return null
+  }
+}
 
 export const getAddressPlace = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(3) > div')
 
@@ -142,4 +151,11 @@ export const getContactEmail = (page: Page) => getText(page, '#endereco > fields
 
 export const getContactWebsite = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(18) > div > a')
 
-export const getRepercussions = (page: Page) => getText(page, '#repercussao > fieldset > p')
+export const getRepercussions = async (page: Page) => {
+  try {
+    const result = await getText(page, '#repercussao > fieldset > p')
+    return result
+  } catch (err) {
+    return null
+  }
+}
