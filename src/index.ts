@@ -3,12 +3,11 @@ import commander from 'commander'
 import { logger } from './logger'
 import { options } from './options'
 import { version, name } from '../package.json'
-import { extractFromGroupSearch } from './extractors/extractFromGroupSearch'
+import { launchExtractFromGroupSearch, launchExtractGroupPage } from './launchers'
 
 commander.version(version)
-  .arguments('group')
-  .usage('group')
-  .option('-g --group <group>', 'Group to extract')
+  .option('-s --search <group>', 'Group search term to extract')
+  .option('-g --group <group>', 'Specific group to extract')
   .option('-v --verbose', 'Verbose log')
   .option('-f --force', 'Force overwrite')
   .parse(process.argv)
@@ -23,13 +22,30 @@ if (commander.force) {
 
 logger.debug(`Starting ${name} v${version}`)
 
-const group = commander.group || commander.args[0]
+const group = commander.group
+const search = commander.search
 
-if (!group) {
-  commander.outputHelp()
-  process.exit(1)
+const handleCommand = async (group: string, search: string) => {
+  if (!group && !search) {
+    commander.outputHelp()
+    process.exit(1)
+  }
+
+  if (search) {
+    await launchExtractFromGroupSearch(search)
+    return
+  }
+
+  if (group) {
+    await launchExtractGroupPage(group)
+  }
 }
 
-extractFromGroupSearch(group)
-  .then(() => logger.info('Finished extracting successfully'))
-  .catch((err) => logger.error(`There was an error extracting ${err.message}`))
+handleCommand(group, search)
+  .then(() => {
+    logger.info('Finished extracting successfully')
+  })
+  .catch((err) => {
+    logger.error(`There was an error extracting ${err.message}`)
+    process.exit(1)
+  })

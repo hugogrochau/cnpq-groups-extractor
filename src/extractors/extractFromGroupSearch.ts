@@ -1,15 +1,12 @@
 import * as R from 'ramda'
 import { logger } from '../logger'
-import { launchBrowser } from '../launchBrowser'
 import { getText, timeout } from '../utils'
 import { Page, Browser, ElementHandle } from 'puppeteer'
+import { extractGroupPage } from './extractGroupPage'
 
 const numberOfResultsPerPage = 25
 
-export const extractFromGroupSearch = async (searchQuery: string) => {
-  logger.info(`Extracting groups that match search query: ${searchQuery}`)
-  const { page, browser } = await launchBrowser()
-
+export const extractFromGroupSearch = async (page: Page, browser: Browser, searchQuery: string) => {
   await executeSearch(page, searchQuery)
 
   await increaseResultsPerPage(page)
@@ -22,11 +19,10 @@ export const extractFromGroupSearch = async (searchQuery: string) => {
 
 const executeSearch = async (page: Page, searchQuery: string) => {
   const checkboxSelector = (i: number) => `#idFormConsultaParametrizada\\:campos\\:${i}`
-  const searchUrl = 'http://dgp.cnpq.br/dgp/faces/consulta/consulta_parametrizada.jsf'
+
   const searchBoxSelector = '#idFormConsultaParametrizada\\:idTextoFiltro'
   const buttonSelector = '#idFormConsultaParametrizada\\:idPesquisar'
 
-  await page.goto(searchUrl)
   const input = await page.waitForSelector(searchBoxSelector, { timeout: 5000 })
   await input.type(searchQuery)
 
@@ -84,23 +80,21 @@ const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser) =
     const groupTitle = await getGroupTitle(resultElement)
     try {
       logger.info(`Extracting group: ${groupTitle}`)
-      await extractGroupPage(browser, resultElement)
+      await openAndExtractGroupPage(browser, resultElement)
     } catch (err) {
       logger.error(`Couldn't extract group: ${groupTitle}. ${err}`)
     }
   }
 }
 
-const extractGroupPage = async (browser: Browser, resultElement: ElementHandle<Element>) => {
+const openAndExtractGroupPage = async (browser: Browser, resultElement: ElementHandle<Element>) => {
   const newPagePromise: Promise<Page> = new Promise(resolve => browser.once('targetcreated', target => resolve(target.page())))
 
   await openGroupPage(resultElement)
 
   const newPage = await timeout(10000, newPagePromise)
 
-  const url = newPage.url()
-  const email = await extractEmail(newPage)
-  console.log({ url, email })
+  await extractGroupPage(newPage)
 
   await newPage.close()
 }
@@ -131,12 +125,4 @@ export const getNumberOfResults = async (page: Page): Promise<number> => {
   const numberOfResults = await getText(page, numberOfResultsSelector, totalNumberRegex)
 
   return +numberOfResults
-}
-
-export const extractEmail = async (page: Page): Promise<string> => {
-  const emailSelector = '#endereco > fieldset > div:nth-child(17) > div > a'
-  await page.waitForSelector(emailSelector)
-  const emailText = await getText(page, emailSelector)
-
-  return emailText
 }
