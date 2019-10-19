@@ -3,7 +3,7 @@ import commander from 'commander'
 import { logger } from './logger'
 import { options } from './options'
 import { version, name } from '../package.json'
-import { extract } from './extract'
+import { extractFromGroupSearch } from './extractors/extractFromGroupSearch'
 
 commander.version(version)
   .arguments('group')
@@ -30,6 +30,6 @@ if (!group) {
   process.exit(1)
 }
 
-extract(group)
+extractFromGroupSearch(group)
   .then(() => logger.info('Finished extracting successfully'))
   .catch((err) => logger.error(`There was an error extracting ${err.message}`))
