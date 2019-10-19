@@ -1,8 +1,10 @@
 import * as R from 'ramda'
 import { logger } from '../logger'
 import { launchBrowser } from '../launchBrowser'
-import { getText } from '../utils'
+import { getText, timeout } from '../utils'
 import { Page, Browser, ElementHandle } from 'puppeteer'
+
+const numberOfResultsPerPage = 25
 
 export const extractFromGroupSearch = async (searchQuery: string) => {
   logger.info(`Extracting groups that match search query: ${searchQuery}`)
@@ -12,7 +14,10 @@ export const extractFromGroupSearch = async (searchQuery: string) => {
 
   await increaseResultsPerPage(page)
 
-  extractGroupsInformation(page, browser)
+  await extractGroupsInformation(page, browser)
+
+  logger.info('Finished extracting groups')
+  await browser.close()
 }
 
 const executeSearch = async (page: Page, searchQuery: string) => {
@@ -32,57 +37,88 @@ const executeSearch = async (page: Page, searchQuery: string) => {
 const increaseResultsPerPage = async (page: Page) => {
   const paginatorSelector = '#idFormConsultaParametrizada\\:resultadoDataList_paginator_bottom > select'
   const selector = await page.waitForSelector(paginatorSelector)
-  await selector.select('100')
+  await selector.select(`${numberOfResultsPerPage}`)
 }
 
-const extractGroupsInformation = async (page: Page, browser: Browser) => {
-  const numberOfResults = await getNumberOfResults(page)
+const extractGroupsInformation = async (searchPage: Page, browser: Browser) => {
+  const numberOfResults = await getNumberOfResults(searchPage)
   logger.info(`Extracting ${numberOfResults} groups`)
 
-  const divisor = Math.floor(numberOfResults / 100)
-  const remainder = numberOfResults % 100
-  const resultsPerPage = R.repeat(100, divisor)
+  const divisor = Math.floor(numberOfResults / numberOfResultsPerPage)
+  const remainder = numberOfResults % numberOfResultsPerPage
+  const resultsPerPage = R.repeat(numberOfResultsPerPage, divisor)
   if (remainder > 0) {
     resultsPerPage.push(remainder)
   }
 
+  let currentPage = 1
   for (const resultsInPage of resultsPerPage) {
-    logger.info(`Extracting ${resultsInPage} from page`)
-    await extractGroupsFromResultPage(page, browser)
-    await goToNextResultPage(page)
+    logger.info(`Extracting ${resultsInPage} groups from page ${currentPage}`)
+
+    await extractGroupsFromResultPage(searchPage, browser)
+
+    await goToNextResultPage(searchPage)
+
+    currentPage++
   }
 }
 
-const goToNextResultPage = async (page: Page) => {
+const goToNextResultPage = async (searchPage: Page) => {
+  await searchPage.bringToFront()
   const nextPageButtonSelector = '#idFormConsultaParametrizada\\:resultadoDataList_paginator_bottom > span.ui-paginator-next.ui-state-default.ui-corner-all > span'
-  await page.click(nextPageButtonSelector)
+  await searchPage.click(nextPageButtonSelector)
 }
 
-const extractGroupsFromResultPage = async (page: Page, browser: Browser) => {
+const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser) => {
+  await searchPage.bringToFront()
+
   const loadingSelector = '#j_idt34[aria-hidden=\'true\']'
-  await page.waitForSelector(loadingSelector)
+  await searchPage.waitForSelector(loadingSelector)
 
   const resultsSelector = '#idFormConsultaParametrizada\\:resultadoDataList_list > li'
-  const resultElements = await page.$$(resultsSelector)
+  const resultElements = await searchPage.$$(resultsSelector)
 
   for (const resultElement of resultElements) {
-    const newPagePromise: Promise<Page> = new Promise(resolve => browser.once('targetcreated', target => resolve(target.page())))
-    await openPage(page, resultElement)
-    const popup = await newPagePromise
-    const url = popup.url()
-    const email = await extractEmail(popup)
-    await popup.close()
-    console.log({ url, email })
+    await searchPage.bringToFront()
+
+    const groupTitle = await getGroupTitle(resultElement)
+    try {
+      logger.info(`Extracting group: ${groupTitle}`)
+      await extractGroupPage(browser, resultElement)
+    } catch (err) {
+      logger.error(`Couldn't extract group: ${groupTitle}. ${err}`)
+    }
   }
 }
 
-const openPage = async (page: Page, resultElement: ElementHandle<Element>) => {
-  await page.bringToFront()
+const extractGroupPage = async (browser: Browser, resultElement: ElementHandle<Element>) => {
+  const newPagePromise: Promise<Page> = new Promise(resolve => browser.once('targetcreated', target => resolve(target.page())))
+
+  await openGroupPage(resultElement)
+
+  const newPage = await timeout(10000, newPagePromise)
+
+  const url = newPage.url()
+  const email = await extractEmail(newPage)
+  console.log({ url, email })
+
+  await newPage.close()
+}
+
+const getGroupTitle = async (resultElement: ElementHandle<Element>) => {
   const groupLinkSelector = '.itemConsulta .control-group:nth-child(1) a'
+  const groupTitle = await resultElement.$eval(groupLinkSelector, el => el.textContent)
+  return groupTitle
+}
+
+const openGroupPage = async (resultElement: ElementHandle<Element>) => {
+  const groupLinkSelector = '.itemConsulta .control-group:nth-child(1) a'
+
   const groupLinkEl = await resultElement.$(groupLinkSelector)
 
   if (!groupLinkEl) {
-    throw new Error('Could\'t click element')
+    const groupTitle = await getGroupTitle(resultElement)
+    throw new Error(`Could't click element of group ${groupTitle}`)
   }
 
   await groupLinkEl.click()
@@ -98,9 +134,6 @@ export const getNumberOfResults = async (page: Page): Promise<number> => {
 }
 
 export const extractEmail = async (page: Page): Promise<string> => {
-  // const groupLink = await page.waitForSelector(groupSelector(0))
-  // await groupLink.click()
-
   const emailSelector = '#endereco > fieldset > div:nth-child(17) > div > a'
   await page.waitForSelector(emailSelector)
   const emailText = await getText(page, emailSelector)

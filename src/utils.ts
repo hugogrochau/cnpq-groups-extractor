@@ -18,3 +18,17 @@ export const getText = async (page: Page, selector: string, regex?: RegExp) => {
 
   return matchResults[1].trim()
 }
+
+export const timeout = <T>(ms: number, op: Promise<T>): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => reject(new Error('TIMEOUT')), ms)
+
+    op.then(result => {
+      clearTimeout(timeoutId)
+      resolve(result)
+    }).catch(err => {
+      clearTimeout(timeoutId)
+      reject(err)
+    })
+  })
+}
