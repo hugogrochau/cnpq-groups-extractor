@@ -28,3 +28,35 @@ export const launchExtractGroupPage = async (group: string) => {
 
   await browser.close()
 }
+
+export const launchAllGroupsSearch = async () => {
+  logger.info('Lauching all groups search')
+
+  const groups = [
+    'Ciências Agrárias',
+    'Bioquímica',
+    'Engenharia Biomédica',
+    'Biotecnologia',
+    'Botânica',
+    'Biologia celular',
+    'Ecologia',
+    'Endocrinologia',
+    'Fisiologia',
+    'Genética',
+    'Geologia',
+    'Ciências do solo',
+    'Geografia',
+    'Imunologia',
+    'Biologia Marinha',
+    'Medicina',
+    'Microbiologia',
+    'Biologia Molecular',
+    'Neurociência',
+    'Farmacologia',
+    'Zoologia'
+  ]
+
+  for (const group of groups) {
+    await launchExtractFromGroupSearch(group)
+  }
+}

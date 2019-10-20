@@ -3,7 +3,7 @@ import commander from 'commander'
 import { logger } from './logger'
 import { options } from './options'
 import { version, name } from '../package.json'
-import { launchExtractFromGroupSearch, launchExtractGroupPage } from './launchers'
+import { launchExtractFromGroupSearch, launchExtractGroupPage, launchAllGroupsSearch } from './launchers'
 import { initDb, closeDb } from './database'
 
 commander.version(version)
@@ -27,17 +27,14 @@ const group = commander.group
 const search = commander.search
 
 const handleCommand = async (group: string, search: string) => {
-  if (!group && !search) {
-    commander.outputHelp()
-    process.exit(1)
-  }
-
   await initDb()
 
   if (search) {
     await launchExtractFromGroupSearch(search)
   } else if (group) {
     await launchExtractGroupPage(group)
+  } else {
+    await launchAllGroupsSearch()
   }
 
   await closeDb()
