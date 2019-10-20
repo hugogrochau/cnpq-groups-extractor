@@ -61,8 +61,6 @@ export const saveFailedExtraction = async (failedExtraction: FailedExtraction) =
 
   const statement = generateReplaceStatement(failedExtraction, 'failed_extraction')
 
-  console.log('statement', statement.sql)
-
   await db.run(statement)
 }
 
@@ -70,8 +68,6 @@ export const saveGroup = async (group: Group) => {
   logger.info(`Saving group ${group.title} to database`)
 
   const statement = generateReplaceStatement(group, 'group')
-
-  console.log('statement', statement.sql)
 
   await db.run(statement)
 }
