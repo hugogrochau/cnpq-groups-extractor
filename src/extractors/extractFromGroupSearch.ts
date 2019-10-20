@@ -15,7 +15,6 @@ export const extractFromGroupSearch = async (page: Page, browser: Browser, searc
   await extractGroupsInformation(page, browser, searchQuery)
 
   logger.info('Finished extracting groups')
-  browser.version()
 }
 
 const executeSearch = async (page: Page, searchQuery: string) => {
