@@ -1,3 +1,4 @@
+import * as R from 'ramda'
 import { logger } from './logger'
 import * as sqlite from 'sqlite'
 import { SQL } from 'sql-template-strings'
@@ -45,14 +46,38 @@ export interface Group {
   repercussions: string,
 }
 
+export interface FailedExtraction {
+  searchQuery: string,
+  title: string,
+  errorMessage: string,
+  pageSize: number,
+  page: number,
+  resultIndex: number
+}
+
+export const saveFailedExtraction = async (failedExtraction: FailedExtraction) => {
+  logger.info(`Saving failed extraction ${failedExtraction.title} to database`)
+
+  const statement = generateReplaceStatement(failedExtraction, 'failed_extraction')
+
+  await db.run(statement)
+}
+
 export const saveGroup = async (group: Group) => {
   logger.info(`Saving group ${group.title} to database`)
 
-  const statement = SQL`
-  REPLACE INTO "group" (
-  `
+  const statement = generateReplaceStatement(group, 'group')
 
-  const columns = Object.keys(group)
+  await db.run(statement)
+}
+
+const generateReplaceStatement = (object: {[key: string]: any}, table: string) => {
+  const statement = SQL`
+  REPLACE INTO `
+
+  statement.append(`"${table}" (`)
+
+  const columns = Object.keys(object)
   columns.forEach((column, index) => {
     if (index < columns.length - 1) {
       statement.append(`"${column}", `)
@@ -66,17 +91,18 @@ export const saveGroup = async (group: Group) => {
   VALUES (
   `)
 
-  const values = Object.values(group)
+  const values = Object.values(object)
   values.forEach((value, index) => {
+    const parsedValue = R.isNil(value) ? null : value
     if (index < values.length - 1) {
-      statement.append(`'${value || null}', `)
+      statement.append(`'${parsedValue}', `)
       return
     }
 
-    statement.append(`'${value || null}'`)
+    statement.append(`'${parsedValue}'`)
   })
 
   statement.append(SQL`)`)
 
-  await db.run(statement)
+  return statement
 }

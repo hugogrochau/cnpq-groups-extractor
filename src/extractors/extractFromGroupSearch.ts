@@ -3,8 +3,9 @@ import { logger } from '../logger'
 import { getText, timeout } from '../utils'
 import { Page, Browser, ElementHandle } from 'puppeteer'
 import { extractGroupPage } from './extractGroupPage'
+import { saveFailedExtraction } from '../database'
 
-const numberOfResultsPerPage = 100
+const pageSize = 100
 
 export const extractFromGroupSearch = async (page: Page, browser: Browser, searchQuery: string) => {
   await executeSearch(page, searchQuery)
@@ -32,16 +33,16 @@ const executeSearch = async (page: Page, searchQuery: string) => {
 const increaseResultsPerPage = async (page: Page) => {
   const paginatorSelector = '#idFormConsultaParametrizada\\:resultadoDataList_paginator_bottom > select'
   const selector = await page.waitForSelector(paginatorSelector)
-  await selector.select(`${numberOfResultsPerPage}`)
+  await selector.select(`${pageSize}`)
 }
 
 const extractGroupsInformation = async (searchPage: Page, browser: Browser, searchQuery: string) => {
   const numberOfResults = await getNumberOfResults(searchPage)
   logger.info(`Extracting ${numberOfResults} groups`)
 
-  const divisor = Math.floor(numberOfResults / numberOfResultsPerPage)
-  const remainder = numberOfResults % numberOfResultsPerPage
-  const resultsPerPage = R.repeat(numberOfResultsPerPage, divisor)
+  const divisor = Math.floor(numberOfResults / pageSize)
+  const remainder = numberOfResults % pageSize
+  const resultsPerPage = R.repeat(pageSize, divisor)
   if (remainder > 0) {
     resultsPerPage.push(remainder)
   }
@@ -50,7 +51,7 @@ const extractGroupsInformation = async (searchPage: Page, browser: Browser, sear
   for (const resultsInPage of resultsPerPage) {
     logger.info(`Extracting ${resultsInPage} groups from page ${currentPage}`)
 
-    await extractGroupsFromResultPage(searchPage, browser, searchQuery)
+    await extractGroupsFromResultPage(searchPage, browser, searchQuery, currentPage)
 
     await goToNextResultPage(searchPage)
 
@@ -64,7 +65,7 @@ const goToNextResultPage = async (searchPage: Page) => {
   await searchPage.click(nextPageButtonSelector)
 }
 
-const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, searchQuery: string) => {
+const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, searchQuery: string, currentPage: number) => {
   await searchPage.bringToFront()
 
   const loadingSelector = '#j_idt34[aria-hidden=\'true\']'
@@ -73,16 +74,32 @@ const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, s
   const resultsSelector = '#idFormConsultaParametrizada\\:resultadoDataList_list > li'
   const resultElements = await searchPage.$$(resultsSelector)
 
+  let currentElementIndex = 0
   for (const resultElement of resultElements) {
     await searchPage.bringToFront()
 
     const groupTitle = await getGroupTitle(resultElement)
+    if (!groupTitle) {
+      throw new Error(`Couldn't  get group title for element ${currentElementIndex}`)
+    }
+
     try {
-      logger.info(`Extracting group: ${groupTitle}`)
+      logger.info(`Extracting group #${currentElementIndex}: ${groupTitle}`)
       await openAndExtractGroupPage(browser, resultElement, searchQuery)
     } catch (err) {
-      logger.error(`Couldn't extract group: ${groupTitle}. ${err}`)
+      logger.error(`Couldn't extract group #${currentElementIndex}: ${groupTitle}. ${err}`)
+
+      await saveFailedExtraction({
+        errorMessage: `${err}`,
+        title: groupTitle,
+        searchQuery,
+        resultIndex: currentElementIndex,
+        page: currentPage,
+        pageSize
+      })
     }
+
+    currentElementIndex++
   }
 }
 
