@@ -80,7 +80,7 @@ const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, s
 
     const groupTitle = await getGroupTitle(resultElement)
     if (!groupTitle) {
-      throw new Error(`Couldn't  get group title for element ${currentElementIndex}`)
+      throw new Error(`Couldn't get group title for element ${currentElementIndex}`)
     }
 
     try {

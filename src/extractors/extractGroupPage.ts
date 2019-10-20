@@ -114,7 +114,14 @@ export const getAreas = async (page: Page) => {
   }
 }
 
-export const getInstitution = (page: Page) => getText(page, '#identificacao > fieldset > div:nth-child(8) > div')
+export const getInstitution = async (page: Page) => {
+  try {
+    const result = await getText(page, '#identificacao > fieldset > div:nth-child(8) > div')
+    return result
+  } catch (err) {
+    return null
+  }
+}
 
 export const getUnit = async (page: Page) => {
   try {

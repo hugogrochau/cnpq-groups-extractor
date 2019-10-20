@@ -2,6 +2,7 @@ import * as R from 'ramda'
 import { logger } from './logger'
 import * as sqlite from 'sqlite'
 import { SQL } from 'sql-template-strings'
+import { escape } from 'sqlstring'
 
 let db: sqlite.Database
 
@@ -60,6 +61,8 @@ export const saveFailedExtraction = async (failedExtraction: FailedExtraction) =
 
   const statement = generateReplaceStatement(failedExtraction, 'failed_extraction')
 
+  console.log('statement', statement.sql)
+
   await db.run(statement)
 }
 
@@ -67,6 +70,8 @@ export const saveGroup = async (group: Group) => {
   logger.info(`Saving group ${group.title} to database`)
 
   const statement = generateReplaceStatement(group, 'group')
+
+  console.log('statement', statement.sql)
 
   await db.run(statement)
 }
@@ -93,13 +98,13 @@ const generateReplaceStatement = (object: {[key: string]: any}, table: string) =
 
   const values = Object.values(object)
   values.forEach((value, index) => {
-    const parsedValue = R.isNil(value) ? null : value
+    const escapedValue = escape(R.isNil(value) ? null : value).replace('\\\'', '\'\'')
     if (index < values.length - 1) {
-      statement.append(`'${parsedValue}', `)
+      statement.append(`${escapedValue}, `)
       return
     }
 
-    statement.append(`'${parsedValue}'`)
+    statement.append(`${escapedValue}`)
   })
 
   statement.append(SQL`)`)
