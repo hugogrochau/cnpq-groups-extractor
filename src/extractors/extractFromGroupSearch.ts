@@ -14,11 +14,11 @@ export const extractFromGroupSearch = async (page: Page, browser: Browser, searc
   await extractGroupsInformation(page, browser, searchQuery)
 
   logger.info('Finished extracting groups')
-  await browser.close()
+  browser.version()
 }
 
 const executeSearch = async (page: Page, searchQuery: string) => {
-  const checkboxSelector = (i: number) => `#idFormConsultaParametrizada\\:campos\\:${i}`
+  // const checkboxSelector = (i: number) => `#idFormConsultaParametrizada\\:campos\\:${i}`
 
   const searchBoxSelector = '#idFormConsultaParametrizada\\:idTextoFiltro'
   const buttonSelector = '#idFormConsultaParametrizada\\:idPesquisar'
@@ -26,7 +26,6 @@ const executeSearch = async (page: Page, searchQuery: string) => {
   const input = await page.waitForSelector(searchBoxSelector, { timeout: 5000 })
   await input.type(searchQuery)
 
-  await page.click(checkboxSelector(0))
   await page.click(buttonSelector)
 }
 

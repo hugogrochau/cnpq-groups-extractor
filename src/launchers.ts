@@ -12,7 +12,7 @@ export const launchExtractFromGroupSearch = async (searchQuery: string) => {
 
   await extractFromGroupSearch(page, browser, searchQuery)
 
-  logger.info(`Finished extracting groups that match edsearch query: ${searchQuery}`)
+  logger.info(`Finished extracting groups that matched search query: ${searchQuery}`)
   await browser.close()
 }
 
