@@ -50,7 +50,7 @@ const extractGroupsInformation = async (searchPage: Page, browser: Browser, sear
   for (const resultsInPage of resultsPerPage) {
     logger.info(`Extracting ${resultsInPage} groups from page ${currentPage}`)
 
-    await extractGroupsFromResultPage(searchPage, browser, searchQuery, currentPage)
+    await extractGroupsFromResultPage(searchPage, browser, searchQuery, currentPage, numberOfResults)
 
     await goToNextResultPage(searchPage)
 
@@ -64,7 +64,7 @@ const goToNextResultPage = async (searchPage: Page) => {
   await searchPage.click(nextPageButtonSelector)
 }
 
-const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, searchQuery: string, currentPage: number) => {
+const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, searchQuery: string, currentPage: number, numberOfResults: number) => {
   await searchPage.bringToFront()
 
   const loadingSelector = '#j_idt34[aria-hidden=\'true\']'
@@ -83,7 +83,7 @@ const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, s
     }
 
     try {
-      logger.info(`Extracting group #${currentElementIndex}: ${groupTitle}`)
+      logger.info(`Extracting group #${currentElementIndex}/${numberOfResults}: ${groupTitle}`)
       await openAndExtractGroupPage(browser, resultElement, searchQuery)
     } catch (err) {
       logger.error(`Couldn't extract group #${currentElementIndex}: ${groupTitle}. ${err}`)
