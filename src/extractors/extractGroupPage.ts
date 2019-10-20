@@ -45,7 +45,7 @@ export const extractGroupPage = async (page: Page, searchQuery: string | null) =
 }
 
 export const getLongId = async (page: Page) => {
-  const result = await getText(page, '#idFormVisualizarGrupoPesquisa > div > div:nth-child(2)', /Endereço para acessar este espelho: dgp\.cnpq\.br\/dgp\/espelhogrupo\/(\d+)/i)
+  const result = await safelyGetText(page, '#idFormVisualizarGrupoPesquisa > div > div:nth-child(2)', /Endereço para acessar este espelho: dgp\.cnpq\.br\/dgp\/espelhogrupo\/(\d+)/i)
   return +result
 }
 
@@ -59,15 +59,15 @@ export const getId = (url: string) => {
   return +matchResults[1].trim()
 }
 
-export const getSituation = async (page: Page) => getText(page, '#identificacao > fieldset > div:nth-child(2) > div')
+export const getSituation = async (page: Page) => safelyGetText(page, '#identificacao > fieldset > div:nth-child(2) > div')
 
 export const getCreationYear = async (page: Page) => {
-  const result = await getText(page, '#identificacao > fieldset > div:nth-child(3) > div')
+  const result = await safelyGetText(page, '#identificacao > fieldset > div:nth-child(3) > div')
   return +result
 }
 
 export const getSituationDate = async (page: Page) => {
-  const result = await getText(page, '#identificacao > fieldset > div:nth-child(4) > div')
+  const result = await safelyGetText(page, '#identificacao > fieldset > div:nth-child(4) > div')
   const parsedDate = parse(`${result} -03`, 'dd/MM/yyyy HH:mm X', 0)
 
   if (parsedDate === new Date(0)) {
@@ -78,7 +78,7 @@ export const getSituationDate = async (page: Page) => {
 }
 
 export const getLastUpdateDate = async (page: Page) => {
-  const result = await getText(page, '#identificacao > fieldset > div:nth-child(5) > div')
+  const result = await safelyGetText(page, '#identificacao > fieldset > div:nth-child(5) > div')
   const parsedDate = parse(`${result} -03`, 'dd/MM/yyyy HH:mm X', 0)
 
   if (parsedDate === new Date(0)) {
@@ -89,7 +89,7 @@ export const getLastUpdateDate = async (page: Page) => {
 }
 
 export const getLeaders = async (page: Page): Promise<[string, string | null]> => {
-  const result = await getText(page, '#identificacao > fieldset > div:nth-child(6) > div')
+  const result = await safelyGetText(page, '#identificacao > fieldset > div:nth-child(6) > div')
   const sanatizedResults = result
     .split('\n')
     .map((s: string) => s
@@ -105,70 +105,51 @@ export const getLeaders = async (page: Page): Promise<[string, string | null]> =
   return [leader1, leader2 || null]
 }
 
-export const getAreas = async (page: Page) => {
-  try {
-    const result = await getText(page, '#identificacao > fieldset > div:nth-child(7) > div')
-    return result
-  } catch (err) {
-    return null
-  }
-}
+export const getAreas = async (page: Page) => safelyGetText(page, '#identificacao > fieldset > div:nth-child(7) > div')
 
-export const getInstitution = async (page: Page) => {
-  try {
-    const result = await getText(page, '#identificacao > fieldset > div:nth-child(8) > div')
-    return result
-  } catch (err) {
-    return null
-  }
-}
+export const getInstitution = async (page: Page) => safelyGetText(page, '#identificacao > fieldset > div:nth-child(8) > div')
 
-export const getUnit = async (page: Page) => {
-  try {
-    const result = await getText(page, '#identificacao > fieldset > div:nth-child(9) > div')
-    return result
-  } catch (err) {
-    return null
-  }
-}
+export const getUnit = async (page: Page) => safelyGetText(page, '#identificacao > fieldset > div:nth-child(9) > div')
 
-export const getAddressPlace = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(3) > div')
+export const getAddressPlace = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(3) > div')
 
-export const getAddressNumber = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(4) > div')
+export const getAddressNumber = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(4) > div')
 
-export const getAddressComplement = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(5) > div')
+export const getAddressComplement = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(5) > div')
 
-export const getAddressNeighborhood = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(6) > div')
+export const getAddressNeighborhood = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(6) > div')
 
-export const getAddressUf = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(7) > div')
+export const getAddressUf = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(7) > div')
 
-export const getAddressLocation = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(8) > div')
+export const getAddressLocation = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(8) > div')
 
-export const getAddressCep = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(9) > div')
+export const getAddressCep = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(9) > div')
 
-export const getAddressPostbox = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(10) > div')
+export const getAddressPostbox = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(10) > div')
 
 export const getLocationLatitude = async (page: Page) => {
-  const result = await getText(page, '#endereco > fieldset > div:nth-child(12) > div')
+  const result = await safelyGetText(page, '#endereco > fieldset > div:nth-child(12) > div')
   return +result
 }
 
 export const getLocationLongitude = async (page: Page) => {
-  const result = await getText(page, '#endereco > fieldset > div:nth-child(13) > div')
+  const result = await safelyGetText(page, '#endereco > fieldset > div:nth-child(13) > div')
   return +result
 }
 
-export const getContactPhone = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(15) > div')
+export const getContactPhone = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(15) > div')
 
-export const getContactFax = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(16) > div')
+export const getContactFax = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(16) > div')
 
-export const getContactEmail = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(17) > div > a')
+export const getContactEmail = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(17) > div > a')
 
-export const getContactWebsite = (page: Page) => getText(page, '#endereco > fieldset > div:nth-child(18) > div > a')
+export const getContactWebsite = (page: Page) => safelyGetText(page, '#endereco > fieldset > div:nth-child(18) > div > a')
 
-export const getRepercussions = async (page: Page) => {
+export const getRepercussions = async (page: Page) => safelyGetText(page, '#repercussao > fieldset > p')
+
+const safelyGetText = async (page: Page, selector: string, regex?: RegExp) => {
   try {
-    const result = await getText(page, '#repercussao > fieldset > p')
+    const result = await getText(page, selector, regex)
     return result
   } catch (err) {
     return null
