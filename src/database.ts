@@ -94,7 +94,8 @@ const generateReplaceStatement = (object: {[key: string]: any}, table: string) =
 
   const values = Object.values(object)
   values.forEach((value, index) => {
-    const escapedValue = escape(R.isNil(value) ? null : value).replace('\\\'', '\'\'')
+    const escapedValue = escape(R.isNil(value) || value === '' ? null : value).replace(/\\'/g, '\'\'')
+
     if (index < values.length - 1) {
       statement.append(`${escapedValue}, `)
       return
