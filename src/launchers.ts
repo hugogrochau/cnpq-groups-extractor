@@ -33,26 +33,26 @@ export const launchAllGroupsSearch = async () => {
   logger.info('Lauching all groups search')
 
   const groups = [
-    'Ciências Agrárias',
+    'Biologia Celular',
+    'Biologia Marinha',
+    'Biologia Molecular',
     'Bioquímica',
-    'Engenharia Biomédica',
     'Biotecnologia',
     'Botânica',
-    'Biologia celular',
+    'Ciências Agrárias',
+    'Ciências do Solo',
     'Ecologia',
     'Endocrinologia',
+    'Engenharia Biomédica',
+    'Farmacologia',
     'Fisiologia',
     'Genética',
-    'Geologia',
-    'Ciências do solo',
     'Geografia',
+    'Geologia',
     'Imunologia',
-    'Biologia Marinha',
     'Medicina',
     'Microbiologia',
-    'Biologia Molecular',
     'Neurociência',
-    'Farmacologia',
     'Zoologia'
   ]
 
