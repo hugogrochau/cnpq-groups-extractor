@@ -105,7 +105,14 @@ export const getLeaders = async (page: Page): Promise<[string, string | null]> =
   return [leader1, leader2 || null]
 }
 
-export const getAreas = (page: Page) => getText(page, '#identificacao > fieldset > div:nth-child(7) > div')
+export const getAreas = async (page: Page) => {
+  try {
+    const result = await getText(page, '#identificacao > fieldset > div:nth-child(7) > div')
+    return result
+  } catch (err) {
+    return null
+  }
+}
 
 export const getInstitution = (page: Page) => getText(page, '#identificacao > fieldset > div:nth-child(8) > div')
 
