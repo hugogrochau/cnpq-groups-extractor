@@ -37,18 +37,19 @@ const increaseResultsPerPage = async (page: Page) => {
 
 const extractGroupsInformation = async (searchPage: Page, browser: Browser, searchQuery: string) => {
   const numberOfResults = await getNumberOfResults(searchPage)
-  logger.info(`Extracting ${numberOfResults} groups`)
-
   const divisor = Math.floor(numberOfResults / pageSize)
   const remainder = numberOfResults % pageSize
   const resultsPerPage = R.repeat(pageSize, divisor)
   if (remainder > 0) {
     resultsPerPage.push(remainder)
   }
+  const numberOfPages = resultsPerPage.length
+
+  logger.info(`Extracting ${numberOfResults} groups in ${numberOfPages} pages`)
 
   let currentPage = 1
   for (const resultsInPage of resultsPerPage) {
-    logger.info(`Extracting ${resultsInPage} groups from page ${currentPage}`)
+    logger.info(`Extracting ${resultsInPage} groups from page ${currentPage}/${numberOfPages}`)
 
     await extractGroupsFromResultPage(searchPage, browser, searchQuery, currentPage, numberOfResults)
 
