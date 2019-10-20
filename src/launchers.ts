@@ -22,7 +22,7 @@ export const launchExtractGroupPage = async (group: string) => {
 
   await page.goto(`http://dgp.cnpq.br/dgp/espelhogrupo/${group}`)
 
-  await extractGroupPage(page)
+  await extractGroupPage(page, null)
 
   logger.info(`Finished extracting group ${group}`)
 

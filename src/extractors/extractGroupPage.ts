@@ -3,7 +3,7 @@ import { Page } from 'puppeteer'
 import { getText } from '../utils'
 import { parse } from 'date-fns'
 
-export const extractGroupPage = async (page: Page) => {
+export const extractGroupPage = async (page: Page, searchQuery: string | null) => {
   const titleSelector = '#tituloImpressao > h1'
   await page.waitForSelector(titleSelector)
 
@@ -14,8 +14,9 @@ export const extractGroupPage = async (page: Page) => {
   await saveGroup({
     title,
     url,
-    shortId: await getShortId(url),
+    id: await getId(url),
     longId: await getLongId(page),
+    searchQuery,
     situation: await getSituation(page),
     creationYear: await getCreationYear(page),
     situationDate: await getSituationDate(page),
@@ -48,7 +49,7 @@ export const getLongId = async (page: Page) => {
   return +result
 }
 
-export const getShortId = (url: string) => {
+export const getId = (url: string) => {
   const regex = /http:\/\/dgp\.cnpq\.br\/dgp\/espelhogrupo\/(\d+)/i
   const matchResults = url.match(regex)
   if (!matchResults) {
@@ -73,7 +74,7 @@ export const getSituationDate = async (page: Page) => {
     return null
   }
 
-  return parsedDate
+  return parsedDate.toISOString()
 }
 
 export const getLastUpdateDate = async (page: Page) => {
@@ -84,7 +85,7 @@ export const getLastUpdateDate = async (page: Page) => {
     return null
   }
 
-  return parsedDate
+  return parsedDate.toISOString()
 }
 
 export const getLeaders = async (page: Page): Promise<[string, string | null]> => {

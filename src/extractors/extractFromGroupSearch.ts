@@ -11,7 +11,7 @@ export const extractFromGroupSearch = async (page: Page, browser: Browser, searc
 
   await increaseResultsPerPage(page)
 
-  await extractGroupsInformation(page, browser)
+  await extractGroupsInformation(page, browser, searchQuery)
 
   logger.info('Finished extracting groups')
   await browser.close()
@@ -36,7 +36,7 @@ const increaseResultsPerPage = async (page: Page) => {
   await selector.select(`${numberOfResultsPerPage}`)
 }
 
-const extractGroupsInformation = async (searchPage: Page, browser: Browser) => {
+const extractGroupsInformation = async (searchPage: Page, browser: Browser, searchQuery: string) => {
   const numberOfResults = await getNumberOfResults(searchPage)
   logger.info(`Extracting ${numberOfResults} groups`)
 
@@ -51,7 +51,7 @@ const extractGroupsInformation = async (searchPage: Page, browser: Browser) => {
   for (const resultsInPage of resultsPerPage) {
     logger.info(`Extracting ${resultsInPage} groups from page ${currentPage}`)
 
-    await extractGroupsFromResultPage(searchPage, browser)
+    await extractGroupsFromResultPage(searchPage, browser, searchQuery)
 
     await goToNextResultPage(searchPage)
 
@@ -65,7 +65,7 @@ const goToNextResultPage = async (searchPage: Page) => {
   await searchPage.click(nextPageButtonSelector)
 }
 
-const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser) => {
+const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser, searchQuery: string) => {
   await searchPage.bringToFront()
 
   const loadingSelector = '#j_idt34[aria-hidden=\'true\']'
@@ -80,21 +80,21 @@ const extractGroupsFromResultPage = async (searchPage: Page, browser: Browser) =
     const groupTitle = await getGroupTitle(resultElement)
     try {
       logger.info(`Extracting group: ${groupTitle}`)
-      await openAndExtractGroupPage(browser, resultElement)
+      await openAndExtractGroupPage(browser, resultElement, searchQuery)
     } catch (err) {
       logger.error(`Couldn't extract group: ${groupTitle}. ${err}`)
     }
   }
 }
 
-const openAndExtractGroupPage = async (browser: Browser, resultElement: ElementHandle<Element>) => {
+const openAndExtractGroupPage = async (browser: Browser, resultElement: ElementHandle<Element>, searchQuery: string) => {
   const newPagePromise: Promise<Page> = new Promise(resolve => browser.once('targetcreated', target => resolve(target.page())))
 
   await openGroupPage(resultElement)
 
   const newPage = await timeout(10000, newPagePromise)
 
-  await extractGroupPage(newPage)
+  await extractGroupPage(newPage, searchQuery)
 
   await newPage.close()
 }

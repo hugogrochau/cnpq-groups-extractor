@@ -4,6 +4,7 @@ import { logger } from './logger'
 import { options } from './options'
 import { version, name } from '../package.json'
 import { launchExtractFromGroupSearch, launchExtractGroupPage } from './launchers'
+import { initDb, closeDb } from './database'
 
 commander.version(version)
   .option('-s --search <group>', 'Group search term to extract')
@@ -31,14 +32,15 @@ const handleCommand = async (group: string, search: string) => {
     process.exit(1)
   }
 
+  await initDb()
+
   if (search) {
     await launchExtractFromGroupSearch(search)
-    return
-  }
-
-  if (group) {
+  } else if (group) {
     await launchExtractGroupPage(group)
   }
+
+  await closeDb()
 }
 
 handleCommand(group, search)

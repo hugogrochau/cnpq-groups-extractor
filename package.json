@@ -31,7 +31,6 @@
     "@types/node-fetch": "^2.5.2",
     "@types/puppeteer": "^1.20.1",
     "@types/ramda": "^0.26.33",
-    "@types/sqlite3": "^3.1.5",
     "chalk": "^2.4.2",
     "commander": "^3.0.2",
     "date-fns": "^2.5.1",
@@ -40,7 +39,8 @@
     "puppeteer": "^1.20.0",
     "ramda": "^0.26.1",
     "rimraf": "^3.0.0",
-    "sqlite3": "^4.1.0",
+    "sql-template-strings": "^2.2.2",
+    "sqlite": "^3.0.3",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.3"
   },
