@@ -108,7 +108,7 @@ const openAndExtractGroupPage = async (browser: Browser, resultElement: ElementH
 
   await openGroupPage(resultElement)
 
-  const newPage = await timeout(10000, newPagePromise)
+  const newPage = await timeout(15000, newPagePromise)
 
   await extractGroupPage(newPage, searchQuery)
 
